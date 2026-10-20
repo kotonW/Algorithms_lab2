@@ -1,0 +1,15 @@
+# Файлы сборки и кэши
+bin/
+obj/
+artifacts/
+
+# Локальный кэш .NET CLI (создаётся при сборке без доступа к сети)
+.dotnet-cli/
+
+# JetBrains Rider
+.idea/
+*.user
+*.suo
+
+# Логи
+*.log

@@ -1,0 +1,65 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:AlgorithmsLab2.App.ViewModels"
+        x:Class="AlgorithmsLab2.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Лабораторная работа №2 — рекурсивные алгоритмы"
+        Width="1240"
+        Height="700"
+        MinWidth="980"
+        MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource AppBackgroundBrush}">
+
+  <Grid ColumnDefinitions="250,*,370" Margin="10">
+
+    <!-- Левая часть: выбор задачи -->
+    <Border Grid.Column="0" Classes="panel" Margin="0,0,10,0" ClipToBounds="True">
+      <DockPanel Margin="12">
+
+        <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="4,4,4,10">
+          <TextBlock Classes="app-title" Text="Рекурсивные алгоритмы" TextWrapping="Wrap" />
+          <TextBlock Classes="muted" Text="Лабораторная работа №2" />
+        </StackPanel>
+
+        <StackPanel DockPanel.Dock="Bottom" Spacing="6" Margin="4,12,4,4">
+          <TextBlock Classes="section" Text="Оформление" />
+          <ToggleSwitch IsChecked="{Binding IsDarkTheme}"
+                        OnContent="Тёмная тема"
+                        OffContent="Светлая тема" />
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+          <TextBlock Classes="section" Text="Задачи" />
+          <ListBox ItemsSource="{Binding Tasks}" SelectedItem="{Binding SelectedTask}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:ITaskViewModel">
+                <StackPanel Spacing="2">
+                  <TextBlock Classes="info" Text="{Binding Title}" />
+                  <TextBlock Classes="muted" Text="{Binding Subtitle}" />
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </StackPanel>
+
+      </DockPanel>
+    </Border>
+
+    <!-- Центр: визуализация -->
+    <Border Grid.Column="1" Classes="panel" ClipToBounds="True">
+      <ContentControl Content="{Binding SelectedTask.Plot}"
+                      HorizontalContentAlignment="Stretch"
+                      VerticalContentAlignment="Stretch" />
+    </Border>
+
+    <!-- Правая часть: настройки и информация -->
+    <Border Grid.Column="2" Classes="panel" Margin="10,0,0,0" ClipToBounds="True">
+      <ScrollViewer>
+        <ContentControl Content="{Binding SelectedTask.Settings}"
+                        HorizontalContentAlignment="Stretch" />
+      </ScrollViewer>
+    </Border>
+
+  </Grid>
+</Window>

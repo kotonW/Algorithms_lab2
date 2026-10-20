@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>AlgorithmsLab2.Application</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AlgorithmsLab2.Domain\AlgorithmsLab2.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,93 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AlgorithmsLab2.App.ViewModels"
+             x:Class="AlgorithmsLab2.App.Views.HanoiSettingsView"
+             x:DataType="vm:HanoiSettingsViewModel">
+
+  <StackPanel Margin="16" Spacing="16">
+
+    <StackPanel Spacing="6">
+      <TextBlock Classes="section" Text="ПАРАМЕТРЫ" />
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Количество колец" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding DiskCount}" />
+      </Grid>
+
+      <Slider Minimum="{Binding MinDisks}"
+              Maximum="{Binding MaxDisks}"
+              Value="{Binding DiskCount}"
+              TickFrequency="1"
+              IsSnapToTickEnabled="True" />
+
+      <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0">
+        <TextBlock Classes="muted" Text="Задержка между ходами, мс" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding StepDelayMs}" />
+      </Grid>
+
+      <Slider Minimum="20" Maximum="600" Value="{Binding StepDelayMs}" />
+    </StackPanel>
+
+    <StackPanel Spacing="8">
+      <TextBlock Classes="section" Text="УПРАВЛЕНИЕ" />
+
+      <Button Classes="primary"
+              HorizontalAlignment="Stretch"
+              Content="{Binding PlaybackText}"
+              Command="{Binding TogglePlaybackCommand}" />
+
+      <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+        <Button HorizontalAlignment="Stretch"
+                Content="Шаг назад"
+                Command="{Binding StepBackCommand}" />
+        <Button Grid.Column="1"
+                HorizontalAlignment="Stretch"
+                Content="Шаг вперёд"
+                Command="{Binding StepForwardCommand}" />
+      </Grid>
+
+      <Button HorizontalAlignment="Stretch"
+              Content="Сбросить"
+              Command="{Binding ResetCommand}" />
+    </StackPanel>
+
+    <StackPanel Spacing="8">
+      <TextBlock Classes="section" Text="СРАВНЕНИЕ" />
+
+      <Button Classes="primary"
+              HorizontalAlignment="Stretch"
+              Content="Сравнить рекурсию и стек"
+              Command="{Binding RunBenchmarkCommand}" />
+
+      <TextBlock Classes="muted" TextWrapping="Wrap" Text="{Binding BenchmarkText}" />
+    </StackPanel>
+
+    <StackPanel Spacing="4">
+      <TextBlock Classes="section" Text="ИНФОРМАЦИЯ" />
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Всего ходов (2^n − 1)" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding TotalMovesText}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Сделано ходов" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding MovesMadeText}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Осталось ходов" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding MovesLeftText}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Прогресс" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding ProgressText}" />
+      </Grid>
+
+      <TextBlock Classes="muted" Text="Текущий ход" Margin="0,6,0,0" />
+      <TextBlock Classes="info" TextWrapping="Wrap" Text="{Binding CurrentMoveText}" />
+    </StackPanel>
+
+  </StackPanel>
+</UserControl>

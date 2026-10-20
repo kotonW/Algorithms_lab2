@@ -1,0 +1,89 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AlgorithmsLab2.App.ViewModels"
+             xmlns:painting="using:AlgorithmsLab2.Application.Painting"
+             x:Class="AlgorithmsLab2.App.Views.SierpinskiSettingsView"
+             x:DataType="vm:SierpinskiSettingsViewModel">
+
+  <StackPanel Margin="16" Spacing="16">
+
+    <StackPanel Spacing="6">
+      <TextBlock Classes="section" Text="ПАРАМЕТРЫ" />
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Глубина рекурсии" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding Depth}" />
+      </Grid>
+
+      <Slider Minimum="{Binding MinDepth}"
+              Maximum="{Binding MaxDepth}"
+              Value="{Binding Depth}"
+              TickFrequency="1"
+              IsSnapToTickEnabled="True" />
+
+      <TextBlock Classes="muted"
+                 TextWrapping="Wrap"
+                 Text="0 — один квадрат, 7 — самая мелкая структура." />
+    </StackPanel>
+
+    <StackPanel Spacing="6">
+      <TextBlock Classes="section" Text="ПАЛИТРА" />
+
+      <ComboBox HorizontalAlignment="Stretch"
+                ItemsSource="{Binding Palettes}"
+                SelectedItem="{Binding SelectedPalette}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="painting:FractalPalette">
+            <TextBlock Text="{Binding Name}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+    </StackPanel>
+
+    <StackPanel Spacing="8">
+      <TextBlock Classes="section" Text="ДЕМОНСТРАЦИЯ" />
+
+      <CheckBox Content="Пошаговая отрисовка" IsChecked="{Binding IsProgressive}" />
+    </StackPanel>
+
+    <StackPanel Spacing="4">
+      <TextBlock Classes="section" Text="ИНФОРМАЦИЯ" />
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Клеток (8^глубина)" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding CellsText}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Площадь фрактала" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding CoverageText}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Вырезано (дыры)" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding RemovedText}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Разрешение растра" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding ResolutionText}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Доля закрашенных пикселей" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding MeasuredFillText}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Время построения" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding RasterTimeText}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Фрактальная размерность" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding DimensionText}" />
+      </Grid>
+    </StackPanel>
+
+  </StackPanel>
+</UserControl>

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>AlgorithmsLab2.Rendering</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ScottPlot.Avalonia" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AlgorithmsLab2.Application\AlgorithmsLab2.Application.csproj" />
+    <ProjectReference Include="..\AlgorithmsLab2.Domain\AlgorithmsLab2.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

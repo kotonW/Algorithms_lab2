@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>AlgorithmsLab2.Preview</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AlgorithmsLab2.Application\AlgorithmsLab2.Application.csproj" />
+    <ProjectReference Include="..\..\src\AlgorithmsLab2.Domain\AlgorithmsLab2.Domain.csproj" />
+    <ProjectReference Include="..\..\src\AlgorithmsLab2.Rendering\AlgorithmsLab2.Rendering.csproj" />
+  </ItemGroup>
+
+</Project>

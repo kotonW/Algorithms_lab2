@@ -1,0 +1,51 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AlgorithmsLab2.App.ViewModels"
+             xmlns:views="using:AlgorithmsLab2.App.Views"
+             x:Class="AlgorithmsLab2.App.App"
+             RequestedThemeVariant="Dark">
+
+  <Application.DataTemplates>
+    <DataTemplate DataType="vm:SierpinskiPlotViewModel">
+      <views:SierpinskiPlotView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:SierpinskiSettingsViewModel">
+      <views:SierpinskiSettingsView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:HanoiPlotViewModel">
+      <views:HanoiPlotView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:HanoiSettingsViewModel">
+      <views:HanoiSettingsView />
+    </DataTemplate>
+  </Application.DataTemplates>
+
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="AppBackgroundBrush" Color="#0F1116" />
+          <SolidColorBrush x:Key="AppPanelBrush" Color="#171A21" />
+          <SolidColorBrush x:Key="AppBorderBrush" Color="#252A34" />
+          <SolidColorBrush x:Key="AppTextBrush" Color="#E6EAF2" />
+          <SolidColorBrush x:Key="AppMutedBrush" Color="#8B94A6" />
+          <SolidColorBrush x:Key="AppAccentBrush" Color="#5B9CFF" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="AppBackgroundBrush" Color="#F2F4F8" />
+          <SolidColorBrush x:Key="AppPanelBrush" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="AppBorderBrush" Color="#DCE1EA" />
+          <SolidColorBrush x:Key="AppTextBrush" Color="#1B1F27" />
+          <SolidColorBrush x:Key="AppMutedBrush" Color="#6B7484" />
+          <SolidColorBrush x:Key="AppAccentBrush" Color="#2563EB" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme />
+    <StyleInclude Source="avares://AlgorithmsLab2.App/Styles/AppStyles.axaml" />
+  </Application.Styles>
+
+</Application>

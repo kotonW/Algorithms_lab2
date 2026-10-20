@@ -1,0 +1,86 @@
+using System.Collections.ObjectModel;
+using AlgorithmsLab2.Application.Settings;
+using AlgorithmsLab2.App.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+
+namespace AlgorithmsLab2.App.ViewModels;
+
+/// <summary>
+/// Корневая ViewModel: список задач, текущая задача и тема оформления.
+/// Центральная и правая панели просто показывают содержимое выбранной задачи.
+/// </summary>
+public partial class MainWindowViewModel : ObservableObject
+{
+    private readonly ISettingsStore _settingsStore;
+    private readonly IThemeService _themeService;
+    private readonly SierpinskiSettingsViewModel _sierpinskiSettings;
+    private readonly HanoiSettingsViewModel _hanoiSettings;
+
+    [ObservableProperty]
+    private ITaskViewModel _selectedTask;
+
+    [ObservableProperty]
+    private bool _isDarkTheme;
+
+    public MainWindowViewModel(
+        ISettingsStore settingsStore,
+        IThemeService themeService,
+        AppSettings settings,
+        SierpinskiPlotViewModel sierpinskiPlot,
+        SierpinskiSettingsViewModel sierpinskiSettings,
+        HanoiPlotViewModel hanoiPlot,
+        HanoiSettingsViewModel hanoiSettings)
+    {
+        ArgumentNullException.ThrowIfNull(settingsStore);
+        ArgumentNullException.ThrowIfNull(themeService);
+        ArgumentNullException.ThrowIfNull(settings);
+
+        _settingsStore = settingsStore;
+        _themeService = themeService;
+        _sierpinskiSettings = sierpinskiSettings;
+        _hanoiSettings = hanoiSettings;
+
+        Tasks =
+        [
+            new TaskViewModel(
+                "sierpinski",
+                "Ковёр Серпинского",
+                "Рекурсивный фрактал",
+                sierpinskiPlot,
+                sierpinskiSettings),
+            new TaskViewModel(
+                "hanoi",
+                "Ханойские башни",
+                "Рекурсивный перебор ходов",
+                hanoiPlot,
+                hanoiSettings),
+        ];
+
+        _selectedTask = Tasks.FirstOrDefault(task => task.Id == settings.Task) ?? Tasks[0];
+        _isDarkTheme = settings.DarkTheme;
+        _themeService.Apply(_isDarkTheme);
+    }
+
+    public ObservableCollection<ITaskViewModel> Tasks { get; }
+
+    /// <summary>Собирает текущее состояние, чтобы сохранить его при закрытии (пункт F13).</summary>
+    public AppSettings CaptureSettings() => new()
+    {
+        Task = SelectedTask.Id,
+        Depth = _sierpinskiSettings.Depth,
+        Palette = _sierpinskiSettings.SelectedPalette.Name,
+        Progressive = _sierpinskiSettings.IsProgressive,
+        DarkTheme = IsDarkTheme,
+        DiskCount = _hanoiSettings.DiskCount,
+        StepDelayMs = _hanoiSettings.StepDelayMs,
+    };
+
+    /// <summary>Сохраняет настройки. Ошибки записи не должны ронять приложение.</summary>
+    public void SaveSettings() => _settingsStore.Save(CaptureSettings());
+
+    partial void OnIsDarkThemeChanged(bool value) => _themeService.Apply(value);
+
+    [RelayCommand]
+    private void ToggleTheme() => IsDarkTheme = !IsDarkTheme;
+}
