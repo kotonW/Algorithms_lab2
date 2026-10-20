@@ -9,11 +9,6 @@ namespace AlgorithmsLab2.Rendering;
 /// </summary>
 public static class HanoiPlotRenderer
 {
-    private static readonly ScottPlot.Color Background = new(20, 22, 27);
-    private static readonly ScottPlot.Color BaseFill = new(71, 85, 105);
-    private static readonly ScottPlot.Color PegColor = new(100, 116, 139);
-    private static readonly ScottPlot.Color LabelColor = new(148, 163, 184);
-
     private const double PegSpacing = 1.0;
 
     /// <summary>Высота стержня не зависит от числа колец — иначе «прыгает» масштаб.</summary>
@@ -34,16 +29,19 @@ public static class HanoiPlotRenderer
     private const double SceneTop = PegHeight + 0.3;
 
     /// <param name="aspectRatio">Отношение ширины области рисования к высоте.</param>
-    public static void Draw(ScottPlot.Plot plot, HanoiSnapshot snapshot, double aspectRatio = 1.33)
+    /// <param name="dark">Тёмная тема: от неё зависят фон и цвет стержней.</param>
+    public static void Draw(ScottPlot.Plot plot, HanoiSnapshot snapshot, double aspectRatio, bool dark)
     {
         ArgumentNullException.ThrowIfNull(plot);
         ArgumentNullException.ThrowIfNull(snapshot);
 
+        var colors = PlotColors.For(dark);
+
         plot.Clear();
         plot.HideGrid();
         plot.Axes.Frameless();
-        plot.FigureBackground.Color = Background;
-        plot.DataBackground.Color = Background;
+        plot.FigureBackground.Color = colors.Background;
+        plot.DataBackground.Color = colors.Background;
 
         // Основание: скруглённая плита постоянного размера.
         DrawRoundedRectangle(
@@ -53,19 +51,19 @@ public static class HanoiPlotRenderer
             -BaseHeight,
             0,
             0.06,
-            BaseFill,
-            Darken(BaseFill, 0.6));
+            colors.NeutralDark,
+            Darken(colors.NeutralDark, 0.6));
 
         for (var peg = 0; peg < 3; peg++)
         {
             var line = plot.Add.Line(PegX(peg), 0, PegX(peg), PegHeight);
             line.LineWidth = PegLineWidth;
-            line.Color = PegColor;
+            line.Color = colors.Neutral;
 
             var label = plot.Add.Text(PegName(peg), PegX(peg), -0.72);
             label.LabelFontSize = 15f;
             label.LabelBold = true;
-            label.LabelFontColor = LabelColor;
+            label.LabelFontColor = colors.Muted;
         }
 
         DrawDisks(plot, snapshot);

@@ -1,3 +1,4 @@
+﻿using AlgorithmsLab2.App.Services;
 using AlgorithmsLab2.Application.Canvases;
 using AlgorithmsLab2.Application.Rendering;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -8,7 +9,7 @@ namespace AlgorithmsLab2.App.ViewModels;
 /// Центральная панель для ковра Серпинского: по изменению настроек перестраивает кадр
 /// в фоне и отдаёт готовый растр на холст.
 /// </summary>
-public sealed class SierpinskiPlotViewModel : ObservableObject, IDisposable
+public sealed class SierpinskiPlotViewModel : ObservableObject, IDisposable, IRedrawableTask
 {
     private readonly IFractalRenderer _renderer;
     private readonly SierpinskiSettingsViewModel _settings;
@@ -34,6 +35,9 @@ public sealed class SierpinskiPlotViewModel : ObservableObject, IDisposable
 
     /// <summary>Перерисовать кадр: например, после изменения размера окна.</summary>
     public void RequestRedraw() => _ = RefreshAsync();
+
+    /// <summary>Смена темы: перерисовываем кадр.</summary>
+    public void Redraw() => RequestRedraw();
 
     /// <inheritdoc />
     public void Dispose()

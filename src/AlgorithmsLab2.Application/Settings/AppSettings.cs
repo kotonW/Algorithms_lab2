@@ -16,4 +16,12 @@ public sealed record AppSettings
     public int DiskCount { get; init; } = 4;
 
     public int StepDelayMs { get; init; } = 150;
+
+    public string BenchmarkAlgorithm { get; init; } = "permutations";
+
+    public int BenchmarkMaxN { get; init; } = 9;
+
+    public int BenchmarkRuns { get; init; } = 5;
+
+    public bool ShowTheory { get; init; } = true;
 }

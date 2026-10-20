@@ -1,11 +1,31 @@
+﻿using AlgorithmsLab2.Application.Benchmarks;
 using AlgorithmsLab2.Application.Painting;
 using AlgorithmsLab2.Application.Rendering;
 using AlgorithmsLab2.Domain.Fractals;
 using AlgorithmsLab2.Domain.Hanoi;
+using AlgorithmsLab2.Domain.Permutations;
 using AlgorithmsLab2.Rendering;
 
 // Утилита разработчика: рендерит контрольные картинки без запуска UI,
-// чтобы глазами проверить геометрию и цвета.
+// чтобы глазами проверить геометрию и цвета. Аргумент --bench печатает точки замеров.
+if (args.Length > 0 && args[0] == "--bench")
+{
+    var permutations = new PermutationsBenchmark(new AllPermutationsAlgorithm());
+    var measured = new BenchmarkRunner().Run(
+        permutations,
+        new ExperimentConfig(10, 3),
+        null,
+        CancellationToken.None);
+
+    foreach (var point in measured.Points)
+    {
+        Console.WriteLine(
+            $"{point.N}\t{point.AverageMs:F6}\t{point.Operations}\t{point.AverageMs / point.Operations:E3}");
+    }
+
+    return;
+}
+
 var outputDirectory = args.Length > 0
     ? args[0]
     : Path.Combine(AppContext.BaseDirectory, "preview");
@@ -45,7 +65,7 @@ foreach (var diskCount in new[] { 3, 4, 10 })
     {
         var snapshot = puzzle.Seek(moves);
         var plot = new ScottPlot.Plot();
-        HanoiPlotRenderer.Draw(plot, snapshot, 640.0 / 480.0);
+        HanoiPlotRenderer.Draw(plot, snapshot, 640.0 / 480.0, dark: true);
         var path = Path.Combine(outputDirectory, $"hanoi-{diskCount}-{name}.png");
         plot.SavePng(path, 640, 480);
         Console.WriteLine($"башни {diskCount} колец, {name}: {snapshot.MovesMade}/{snapshot.TotalMoves} -> {path}");

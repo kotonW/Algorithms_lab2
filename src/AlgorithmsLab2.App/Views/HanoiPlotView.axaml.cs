@@ -1,3 +1,4 @@
+﻿using AlgorithmsLab2.App.Services;
 using AlgorithmsLab2.App.ViewModels;
 using AlgorithmsLab2.Rendering;
 using Avalonia;
@@ -37,7 +38,7 @@ public partial class HanoiPlotView : UserControl
         }
 
         _attached = viewModel;
-        viewModel.Attach(new AvaPlotCanvas(plot));
+        viewModel.Attach(new AvaPlotCanvas(plot, () => AppTheme.IsDark));
 
         // Пропорции колец зависят от размера панели — перерисовываем при изменении.
         plot.SizeChanged += (_, _) => viewModel.RequestRedraw();

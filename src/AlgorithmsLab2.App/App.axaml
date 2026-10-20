@@ -18,6 +18,12 @@
     <DataTemplate DataType="vm:HanoiSettingsViewModel">
       <views:HanoiSettingsView />
     </DataTemplate>
+    <DataTemplate DataType="vm:BenchmarkChartViewModel">
+      <views:BenchmarkChartView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:BenchmarkSettingsViewModel">
+      <views:BenchmarkSettingsView />
+    </DataTemplate>
   </Application.DataTemplates>
 
   <Application.Resources>
@@ -30,6 +36,7 @@
           <SolidColorBrush x:Key="AppTextBrush" Color="#E6EAF2" />
           <SolidColorBrush x:Key="AppMutedBrush" Color="#8B94A6" />
           <SolidColorBrush x:Key="AppAccentBrush" Color="#5B9CFF" />
+          <SolidColorBrush x:Key="AppCellBrush" Color="#22304A" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
           <SolidColorBrush x:Key="AppBackgroundBrush" Color="#F2F4F8" />
@@ -38,6 +45,7 @@
           <SolidColorBrush x:Key="AppTextBrush" Color="#1B1F27" />
           <SolidColorBrush x:Key="AppMutedBrush" Color="#6B7484" />
           <SolidColorBrush x:Key="AppAccentBrush" Color="#2563EB" />
+          <SolidColorBrush x:Key="AppCellBrush" Color="#DCE7FA" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
     </ResourceDictionary>

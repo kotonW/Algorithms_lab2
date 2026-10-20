@@ -1,4 +1,4 @@
-using AlgorithmsLab2.Application.Settings;
+﻿using AlgorithmsLab2.Application.Settings;
 using Xunit;
 
 namespace AlgorithmsLab2.Tests;
@@ -35,6 +35,10 @@ public sealed class JsonSettingsStoreTests : IDisposable
             Progressive = true,
             DiskCount = 6,
             StepDelayMs = 320,
+            BenchmarkAlgorithm = "permutations",
+            BenchmarkMaxN = 8,
+            BenchmarkRuns = 3,
+            ShowTheory = false,
         };
 
         store.Save(expected);

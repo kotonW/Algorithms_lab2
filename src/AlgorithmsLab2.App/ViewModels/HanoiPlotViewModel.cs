@@ -1,3 +1,4 @@
+﻿using AlgorithmsLab2.App.Services;
 using AlgorithmsLab2.Application.Canvases;
 using AlgorithmsLab2.Application.Hanoi;
 using AlgorithmsLab2.Domain.Hanoi;
@@ -5,7 +6,7 @@ using AlgorithmsLab2.Domain.Hanoi;
 namespace AlgorithmsLab2.App.ViewModels;
 
 /// <summary>Центральная панель для башен: перерисовывает холст при каждом ходе.</summary>
-public sealed class HanoiPlotViewModel : IDisposable
+public sealed class HanoiPlotViewModel : IDisposable, IRedrawableTask
 {
     private readonly HanoiSession _session;
 
@@ -26,6 +27,9 @@ public sealed class HanoiPlotViewModel : IDisposable
 
     /// <summary>Перерисовать текущее состояние (например, после изменения размера окна).</summary>
     public void RequestRedraw() => _canvas?.Show(_session.Snapshot);
+
+    /// <summary>Смена темы: фон тоже перекрашивается.</summary>
+    public void Redraw() => RequestRedraw();
 
     /// <inheritdoc />
     public void Dispose() => _session.Changed -= OnSessionChanged;

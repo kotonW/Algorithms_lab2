@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using AlgorithmsLab2.Application.Settings;
 using AlgorithmsLab2.App.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -16,6 +16,8 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly IThemeService _themeService;
     private readonly SierpinskiSettingsViewModel _sierpinskiSettings;
     private readonly HanoiSettingsViewModel _hanoiSettings;
+    private readonly BenchmarkSettingsViewModel _benchmarkSettings;
+    private readonly BenchmarkChartViewModel _benchmarkChart;
 
     [ObservableProperty]
     private ITaskViewModel _selectedTask;
@@ -30,7 +32,9 @@ public partial class MainWindowViewModel : ObservableObject
         SierpinskiPlotViewModel sierpinskiPlot,
         SierpinskiSettingsViewModel sierpinskiSettings,
         HanoiPlotViewModel hanoiPlot,
-        HanoiSettingsViewModel hanoiSettings)
+        HanoiSettingsViewModel hanoiSettings,
+        BenchmarkChartViewModel benchmarkChart,
+        BenchmarkSettingsViewModel benchmarkSettings)
     {
         ArgumentNullException.ThrowIfNull(settingsStore);
         ArgumentNullException.ThrowIfNull(themeService);
@@ -40,6 +44,8 @@ public partial class MainWindowViewModel : ObservableObject
         _themeService = themeService;
         _sierpinskiSettings = sierpinskiSettings;
         _hanoiSettings = hanoiSettings;
+        _benchmarkSettings = benchmarkSettings;
+        _benchmarkChart = benchmarkChart;
 
         Tasks =
         [
@@ -55,6 +61,12 @@ public partial class MainWindowViewModel : ObservableObject
                 "Рекурсивный перебор ходов",
                 hanoiPlot,
                 hanoiSettings),
+            new TaskViewModel(
+                "permutations",
+                "Перебор перестановок",
+                "O(n!) — рекурсивный перебор",
+                benchmarkChart,
+                benchmarkSettings),
         ];
 
         _selectedTask = Tasks.FirstOrDefault(task => task.Id == settings.Task) ?? Tasks[0];
@@ -74,12 +86,28 @@ public partial class MainWindowViewModel : ObservableObject
         DarkTheme = IsDarkTheme,
         DiskCount = _hanoiSettings.DiskCount,
         StepDelayMs = _hanoiSettings.StepDelayMs,
+        BenchmarkAlgorithm = _benchmarkSettings.SelectedAlgorithm.Metadata.Id,
+        BenchmarkMaxN = _benchmarkSettings.MaxN,
+        BenchmarkRuns = _benchmarkSettings.RunsPerPoint,
+        ShowTheory = _benchmarkSettings.ShowTheory,
     };
 
     /// <summary>Сохраняет настройки. Ошибки записи не должны ронять приложение.</summary>
     public void SaveSettings() => _settingsStore.Save(CaptureSettings());
 
-    partial void OnIsDarkThemeChanged(bool value) => _themeService.Apply(value);
+    partial void OnIsDarkThemeChanged(bool value)
+    {
+        _themeService.Apply(value);
+
+        // Графики хранят цвета в объекте Plot, поэтому их нужно перерисовать.
+        foreach (var task in Tasks)
+        {
+            if (task.Plot is IRedrawableTask redrawable)
+            {
+                redrawable.Redraw();
+            }
+        }
+    }
 
     [RelayCommand]
     private void ToggleTheme() => IsDarkTheme = !IsDarkTheme;

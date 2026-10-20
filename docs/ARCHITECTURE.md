@@ -22,6 +22,9 @@
 | F-12 | Сравнение рекурсии и стека с замером (для башен) | готово |
 | F-13 | Сохранение настроек | готово |
 | F-14 | Ханойские башни: число колец, общее и текущее число ходов | готово |
+| F-15 | Перебор перестановок: рекурсивный алгоритм, замеры и график | готово |
+| F-16 | График времени от n, замеры как в лабораторной №1 | готово |
+| F-17 | Добавление нового алгоритма и его графика без нового UI | готово (см. §10) |
 
 ## 2. Стек
 
@@ -50,11 +53,14 @@ Algorithms_lab2.sln
 ├─ src/
 │  ├─ AlgorithmsLab2.Domain/
 │  │   ├─ Geometry/               RectD, GrayRaster
+│  │   ├─ Benchmarks/             ITimedAlgorithm — алгоритм без знания о замерах
 │  │   ├─ Fractals/               SierpinskiCarpet, FractalMath, FractalCell, IFractal
+│  │   ├─ Permutations/           PermutationGenerator (рекурсия), AllPermutationsAlgorithm
 │  │   └─ Hanoi/                  HanoiSolver (рекурсия и стек), HanoiPuzzle, HanoiSnapshot
 │  ├─ AlgorithmsLab2.Application/
 │  │   ├─ Rendering/              FractalRenderer, RenderLimits, статистика
-│  │   ├─ Canvases/               IFractalCanvas, IHanoiCanvas
+│  │   ├─ Benchmarks/             IAlgorithmBenchmark, BenchmarkRunner, ExperimentConfig, реестр
+│  │   ├─ Canvases/               IFractalCanvas, IHanoiCanvas, IBenchmarkCanvas
 │  │   ├─ Hanoi/                  HanoiSession, HanoiBenchmark
 │  │   └─ Settings/               AppSettings, ISettingsStore, JsonSettingsStore
 │  ├─ AlgorithmsLab2.Rendering/
@@ -210,6 +216,19 @@ Fill(x, y, size, level):
 Тема оформления — `ThemeVariant` приложения; кисти панелей описаны в
 `ResourceDictionary.ThemeDictionaries` с отдельными наборами для светлой и тёмной темы.
 
+Графики ScottPlot тему сами не подхватывают (по умолчанию у них белый фон), поэтому:
+
+- `AppTheme` хранит текущий режим, `ThemeService` обновляет его вместе с `ThemeVariant`;
+- `AvaPlotCanvas` при создании сразу красит фон и оси — иначе до первого кадра видна
+  белая плоскость;
+- при переключении темы `MainWindowViewModel` обходит задачи, реализующие
+  `IRedrawableTask`, и просит их перерисоваться; у графика замеров с пустыми данными
+  вызывается `RefreshTheme` — перекрашиваются только оси и фон.
+
+Панорамирование и зум на графике замеров остаются штатными средствами ScottPlot;
+клик по точке обрабатывается отдельно и отличается от перетаскивания по порогу
+смещения мыши (4 DIP).
+
 ## 8. Ограничения
 
 | Что | Значение | Почему |
@@ -218,10 +237,11 @@ Fill(x, y, size, level):
 | Сторона растра | 243–2187 px | 2187² ≈ 4,8 МБ, компромисс память/качество |
 | Колец в башнях | 1–10 | 2^10 − 1 = 1023 хода, проигрывание остаётся осмысленным |
 | Задержка между ходами | 20–600 мс |  |
+| n для замеров перестановок | 1–15 | 15! ≈ 1,3 трлн операций: это часы, поэтому в UI есть оценка времени и отмена |
 
 ## 9. Тесты
 
-75 тестов (xunit v3), запускаются как обычный исполняемый файл:
+109 тестов (xunit v3), запускаются как обычный исполняемый файл:
 
 - `FractalMathTests` — формулы `8^n`, `(8/9)^n`, размерность.
 - `SierpinskiCarpetTests` — число клеток, границы, отсутствие пересечений, совпадение
@@ -232,12 +252,59 @@ Fill(x, y, size, level):
   откат и переход к произвольному ходу, смена числа колец.
 - `HanoiPuzzleTests` — минимальное число ходов, легальность каждого хода, финальное
   состояние, шаг назад, счётчики.
+- `PermutationGeneratorTests` — `n!` для известных значений, ровно `n!` различных
+  перестановок, каждая является перестановкой `1..n`, валидация аргументов.
+- `PermutationsBenchmarkTests` — метаданные алгоритма, совпадение `RunOnce` с `n!`,
+  выход за диапазон n, реестр алгоритмов.
+- `BenchmarkRunnerTests` — по точке на каждое n, число прогонов на точку, прогресс,
+  отмена, границы среднего, разбор конфигурации эксперимента.
 - `RenderLimitsTests` — границы глубины и разрешения, согласованность статистики с растром.
 - `JsonSettingsStoreTests` — сохранение/чтение/битый файл/создание каталога.
 
-## 10. Возможные расширения
+## 10. Подсистема замеров (как добавить новый алгоритм)
+
+Идея взята из первой лабораторной и перенесена на интерфейсы нашего приложения:
+
+| Слой | Тип | Роль |
+|------|-----|------|
+| Domain | `ITimedAlgorithm<TInput, TResult>` | чистый алгоритм: `Execute(input)`, без замеров |
+| Application | `IAlgorithmBenchmark` / `AlgorithmBenchmark` | описание алгоритма + `RunOnce(n)` |
+| Application | `TimedAlgorithmBenchmark<TInput, TResult>` | адаптер «любой алгоритм → бенчмарк» |
+| Application | `ExperimentConfig` | `MaxN`, шаг, число прогонов на точку |
+| Application | `BenchmarkRunner` | Stopwatch, R прогонов на точку, среднее/минимум/максимум |
+| Application | `BenchmarkRegistry` | список алгоритмов, наполняется через DI |
+| Rendering | `BenchmarkPlotRenderer` | график измерений + теоретическая кривая `c·f(n)` |
+| App | `BenchmarkSettingsViewModel` | параметры, запуск, таблица точек |
+| App | `BenchmarkChartViewModel` | холст графика, выбор точки по клику |
+
+Добавление нового алгоритма сводится к двум шагам:
+
+```csharp
+// 1. Алгоритм: чистый класс без знания о UI и замерах.
+public sealed class MyAlgorithm : ITimedAlgorithm<int, long>
+{
+    public string Name => "Мой алгоритм";
+    public long Execute(int n) => /* ... */;
+}
+
+// 2. Регистрация: одна строка в ServiceConfiguration.
+services.AddSingleton<IAlgorithmBenchmark>(sp =>
+    new TimedAlgorithmBenchmark<int, long>(
+        new MyAlgorithm(),
+        myMetadata,          // имя, сложность, описание, диапазон n
+        n => n));            // как из n получить вход алгоритма
+```
+
+После этого алгоритм сам появляется в выпадающем списке раздела «Замеры», и для него
+можно построить график — ни одного нового View или ViewModel писать не нужно.
+
+Коэффициент `c` теоретической кривой подбирается методом наименьших квадратов:
+`c = Σ(yᵢ·fᵢ) / Σ(fᵢ²)`. Если измерения лежат на кривой `n!`, линии почти совпадают —
+это и есть визуальное подтверждение оценки `O(n!)`.
+
+## 11. Возможные расширения
 
 - Новые фракталы: реализовать `IFractal` и добавить пункт в список задач.
-- Экспорт PNG/SVG: `IPlotExporter` над `Plot.SavePng`.
+- Новые замеряемые алгоритмы: реализовать `ITimedAlgorithm` и зарегистрировать бенчмарк.
+- Экспорт графика в PNG: `IPlotExporter` над `Plot.SavePng`.
 - Тайлинг растра для глубин ≥ 9.
-- Сравнение рекурсии и стека для башен (сейчас только для фрактала).

@@ -1,3 +1,4 @@
+﻿using AlgorithmsLab2.Application.Benchmarks;
 using AlgorithmsLab2.Application.Hanoi;
 using AlgorithmsLab2.Application.Rendering;
 using AlgorithmsLab2.Application.Settings;
@@ -5,6 +6,7 @@ using AlgorithmsLab2.App.Services;
 using AlgorithmsLab2.App.ViewModels;
 using AlgorithmsLab2.App.Views;
 using AlgorithmsLab2.Domain.Fractals;
+using AlgorithmsLab2.Domain.Permutations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AlgorithmsLab2.App.Composition;
@@ -30,6 +32,16 @@ public static class ServiceConfiguration
         services.AddSingleton<SierpinskiPlotViewModel>();
         services.AddSingleton<HanoiSettingsViewModel>();
         services.AddSingleton<HanoiPlotViewModel>();
+
+        // Замеры алгоритмов: чтобы добавить новый алгоритм, достаточно реализовать
+        // IAlgorithmBenchmark и добавить одну регистрацию ниже.
+        services.AddSingleton<AllPermutationsAlgorithm>();
+        services.AddSingleton<IAlgorithmBenchmark, PermutationsBenchmark>();
+        services.AddSingleton<BenchmarkRegistry>();
+        services.AddSingleton<BenchmarkRunner>();
+        services.AddSingleton<BenchmarkChartViewModel>();
+        services.AddSingleton<BenchmarkSettingsViewModel>();
+
         services.AddSingleton<MainWindowViewModel>();
 
         services.AddSingleton<MainWindow>();
