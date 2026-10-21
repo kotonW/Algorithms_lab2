@@ -1,0 +1,108 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AlgorithmsLab2.App.ViewModels"
+             xmlns:bench="using:AlgorithmsLab2.Application.Benchmarks"
+             x:Class="AlgorithmsLab2.App.Views.BenchmarkSettingsView"
+             x:DataType="vm:BenchmarkSettingsViewModel">
+
+  <StackPanel Margin="16" Spacing="16">
+
+    <StackPanel Spacing="6" IsEnabled="{Binding !IsRunning}">
+      <TextBlock Classes="section" Text="АЛГОРИТМ" />
+
+      <ComboBox HorizontalAlignment="Stretch"
+                ItemsSource="{Binding Algorithms}"
+                SelectedItem="{Binding SelectedAlgorithm}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="bench:IAlgorithmBenchmark">
+            <TextBlock Text="{Binding Metadata.Name}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+
+      <TextBlock Classes="info" Text="{Binding ComplexityText}" />
+      <TextBlock Classes="muted" TextWrapping="Wrap" Text="{Binding DescriptionText}" />
+    </StackPanel>
+
+    <StackPanel Spacing="6" IsEnabled="{Binding !IsRunning}">
+      <TextBlock Classes="section" Text="ПАРАМЕТРЫ" />
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Максимальное n" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding MaxN}" />
+      </Grid>
+
+      <Slider Minimum="{Binding MinAllowedN}"
+              Maximum="{Binding MaxAllowedN}"
+              Value="{Binding MaxN}"
+              TickFrequency="1"
+              IsSnapToTickEnabled="True" />
+
+      <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0">
+        <TextBlock Classes="muted" Text="Прогонов на точку" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding RunsPerPoint}" />
+      </Grid>
+
+      <Slider Minimum="1"
+              Maximum="{Binding MaxRuns}"
+              Value="{Binding RunsPerPoint}"
+              TickFrequency="1"
+              IsSnapToTickEnabled="True" />
+
+      <TextBlock Classes="muted" TextWrapping="Wrap" Text="{Binding EstimateText}" />
+    </StackPanel>
+
+    <StackPanel Spacing="8">
+      <TextBlock Classes="section" Text="ГРАФИК" />
+
+      <CheckBox Content="Теоретическая кривая c·f(n)"
+                IsChecked="{Binding ShowTheory}" />
+
+      <TextBlock Classes="muted"
+                 TextWrapping="Wrap"
+                 Text="Клик по точке показывает n и время. Колесо — масштаб, перетаскивание — сдвиг." />
+    </StackPanel>
+
+    <StackPanel Spacing="8">
+      <TextBlock Classes="section" Text="УПРАВЛЕНИЕ" />
+
+      <Button Classes="primary"
+              HorizontalAlignment="Stretch"
+              Content="Запустить замер"
+              Command="{Binding RunCommand}" />
+
+      <Button HorizontalAlignment="Stretch"
+              Content="Отмена"
+              Command="{Binding CancelCommand}" />
+
+      <ProgressBar Minimum="0" Maximum="100" Value="{Binding ProgressValue}" />
+
+      <TextBlock Classes="muted" TextWrapping="Wrap" Text="{Binding StatusText}" />
+    </StackPanel>
+
+    <StackPanel Spacing="4">
+      <TextBlock Classes="section" Text="РЕЗУЛЬТАТЫ, мс" />
+
+      <Grid ColumnDefinitions="36,*,*,*">
+        <TextBlock Classes="muted" Text="n" />
+        <TextBlock Grid.Column="1" Classes="muted" Text="Среднее" />
+        <TextBlock Grid.Column="2" Classes="muted" Text="Мин." />
+        <TextBlock Grid.Column="3" Classes="muted" Text="Макс." />
+      </Grid>
+
+      <ItemsControl ItemsSource="{Binding Rows}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:BenchmarkRow">
+            <Grid ColumnDefinitions="36,*,*,*">
+              <TextBlock Classes="value" Text="{Binding N}" />
+              <TextBlock Grid.Column="1" Classes="info" Text="{Binding AverageText}" />
+              <TextBlock Grid.Column="2" Classes="muted" Text="{Binding MinText}" />
+              <TextBlock Grid.Column="3" Classes="muted" Text="{Binding MaxText}" />
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+
+  </StackPanel>
+</UserControl>
