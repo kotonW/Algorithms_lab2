@@ -5,9 +5,9 @@ using AlgorithmsLab2.Application.Settings;
 using AlgorithmsLab2.App.Services;
 using AlgorithmsLab2.App.ViewModels;
 using AlgorithmsLab2.App.Views;
-using AlgorithmsLab2.Domain.Catalan;
 using AlgorithmsLab2.Domain.Fractals;
 using AlgorithmsLab2.Domain.Permutations;
+using AlgorithmsLab2.Domain.Polyominoes;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AlgorithmsLab2.App.Composition;
@@ -38,8 +38,8 @@ public static class ServiceConfiguration
         // IAlgorithmBenchmark и добавить одну регистрацию ниже.
         services.AddSingleton<AllPermutationsAlgorithm>();
         services.AddSingleton<IAlgorithmBenchmark, PermutationsBenchmark>();
-        services.AddSingleton<NaiveCatalanAlgorithm>();
-        services.AddSingleton<IAlgorithmBenchmark, CatalanBenchmark>();
+        services.AddSingleton<RedelmeierPolyominoAlgorithm>();
+        services.AddSingleton<IAlgorithmBenchmark, PolyominoBenchmark>();
         services.AddSingleton<BenchmarkRegistry>();
         services.AddSingleton<BenchmarkRunner>();
         services.AddSingleton<BenchmarkChartViewModel>();
