@@ -25,7 +25,11 @@
         <TextBlock Grid.Column="1" Classes="value" Text="{Binding StepDelayMs}" />
       </Grid>
 
-      <Slider Minimum="20" Maximum="600" Value="{Binding StepDelayMs}" />
+      <Slider Minimum="{Binding MinDelayMs}"
+              Maximum="{Binding MaxDelayMs}"
+              Value="{Binding StepDelayMs}"
+              TickFrequency="10"
+              IsSnapToTickEnabled="True" />
     </StackPanel>
 
     <StackPanel Spacing="8">
@@ -87,6 +91,26 @@
 
       <TextBlock Classes="muted" Text="Текущий ход" Margin="0,6,0,0" />
       <TextBlock Classes="info" TextWrapping="Wrap" Text="{Binding CurrentMoveText}" />
+    </StackPanel>
+
+    <StackPanel Spacing="6">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="section" Text="ЖУРНАЛ ХОДОВ" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding MovesMadeText}" />
+      </Grid>
+
+      <ListBox Height="240"
+               ItemsSource="{Binding MoveLog}"
+               SelectedIndex="{Binding LogSelectedIndex, Mode=OneWay}">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:HanoiLogEntry">
+            <Grid ColumnDefinitions="48,*">
+              <TextBlock Classes="muted" Text="{Binding Number}" />
+              <TextBlock Grid.Column="1" Text="{Binding MoveText}" />
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
     </StackPanel>
 
   </StackPanel>

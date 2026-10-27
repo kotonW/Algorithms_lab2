@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Globalization;
 using AlgorithmsLab2.Application.Hanoi;
 using AlgorithmsLab2.Application.Rendering;
@@ -15,6 +16,12 @@ namespace AlgorithmsLab2.App.ViewModels;
 /// </summary>
 public partial class HanoiSettingsViewModel : ObservableObject, IDisposable
 {
+    /// <summary>Наименьшая задержка между ходами, мс.</summary>
+    public const int MinStepDelayMs = 20;
+
+    /// <summary>Наибольшая задержка между ходами, мс (2 секунды).</summary>
+    public const int MaxStepDelayMs = 2000;
+
     private static readonly string[] PegNames = ["A", "B", "C"];
 
     private readonly HanoiSession _session;
@@ -47,6 +54,9 @@ public partial class HanoiSettingsViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string _benchmarkText = "Нажмите кнопку, чтобы сравнить рекурсию и стек.";
 
+    [ObservableProperty]
+    private int _logSelectedIndex = -1;
+
     public HanoiSettingsViewModel(HanoiSession session, AppSettings settings)
     {
         ArgumentNullException.ThrowIfNull(session);
@@ -54,7 +64,7 @@ public partial class HanoiSettingsViewModel : ObservableObject, IDisposable
 
         _session = session;
         _diskCount = Math.Clamp(settings.DiskCount, RenderLimits.MinHanoiDisks, RenderLimits.MaxHanoiDisks);
-        _stepDelayMs = Math.Clamp(settings.StepDelayMs, 20, 1000);
+        _stepDelayMs = Math.Clamp(settings.StepDelayMs, MinStepDelayMs, MaxStepDelayMs);
 
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(_stepDelayMs) };
         _timer.Tick += OnTimerTick;
@@ -69,6 +79,13 @@ public partial class HanoiSettingsViewModel : ObservableObject, IDisposable
     public int MinDisks => RenderLimits.MinHanoiDisks;
 
     public int MaxDisks => RenderLimits.MaxHanoiDisks;
+
+    public int MinDelayMs => MinStepDelayMs;
+
+    public int MaxDelayMs => MaxStepDelayMs;
+
+    /// <summary>Журнал сделанных ходов по порядку; шаг назад и сброс убирают записи.</summary>
+    public ObservableCollection<HanoiLogEntry> MoveLog { get; } = [];
 
     /// <summary>Текст на кнопке запуска: «Провести симуляцию» или «Пауза».</summary>
     public string PlaybackText => IsPlaying ? "Пауза" : "Провести симуляцию";
@@ -89,7 +106,7 @@ public partial class HanoiSettingsViewModel : ObservableObject, IDisposable
     }
 
     partial void OnStepDelayMsChanged(int value) =>
-        _timer.Interval = TimeSpan.FromMilliseconds(Math.Clamp(value, 20, 1000));
+        _timer.Interval = TimeSpan.FromMilliseconds(Math.Clamp(value, MinStepDelayMs, MaxStepDelayMs));
 
     partial void OnIsPlayingChanged(bool value)
     {
@@ -180,5 +197,36 @@ public partial class HanoiSettingsViewModel : ObservableObject, IDisposable
         CurrentMoveText = snapshot.LastMove is { } move
             ? $"Кольцо {move.Disk}: {PegNames[move.FromPeg]} → {PegNames[move.ToPeg]}"
             : "—";
+
+        SyncLog(snapshot);
+    }
+
+    /// <summary>
+    /// Приводит журнал в соответствие с состоянием головоломки. Ход вперёд добавляет запись,
+    /// шаг назад, сброс и смена числа колец убирают записи, которых больше нет.
+    /// </summary>
+    private void SyncLog(HanoiSnapshot snapshot)
+    {
+        var made = snapshot.MovesMade;
+
+        if (made == 0)
+        {
+            MoveLog.Clear();
+        }
+        else
+        {
+            while (MoveLog.Count > made)
+            {
+                MoveLog.RemoveAt(MoveLog.Count - 1);
+            }
+        }
+
+        if (MoveLog.Count == made - 1 && snapshot.LastMove is { } move)
+        {
+            MoveLog.Add(new HanoiLogEntry(made, move.Disk, PegNames[move.FromPeg], PegNames[move.ToPeg]));
+        }
+
+        // Выделяем последнюю запись: список сам прокручивается к текущему ходу.
+        LogSelectedIndex = MoveLog.Count - 1;
     }
 }
