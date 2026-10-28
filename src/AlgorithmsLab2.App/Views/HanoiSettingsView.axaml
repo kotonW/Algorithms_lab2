@@ -99,9 +99,10 @@
         <TextBlock Grid.Column="1" Classes="value" Text="{Binding MovesMadeText}" />
       </Grid>
 
-      <ListBox Height="240"
+    <ListBox Height="240"
                ItemsSource="{Binding MoveLog}"
-               SelectedIndex="{Binding LogSelectedIndex, Mode=OneWay}">
+               SelectedIndex="{Binding LogSelectedIndex, Mode=OneWay}"
+               RequestBringIntoView="OnLogRequestBringIntoView">
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:HanoiLogEntry">
             <Grid ColumnDefinitions="48,*">

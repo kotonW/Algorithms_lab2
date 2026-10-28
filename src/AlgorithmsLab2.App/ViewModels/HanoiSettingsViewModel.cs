@@ -1,10 +1,10 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 using AlgorithmsLab2.Application.Hanoi;
 using AlgorithmsLab2.Application.Rendering;
 using AlgorithmsLab2.Application.Settings;
 using AlgorithmsLab2.Domain.Hanoi;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -12,20 +12,17 @@ namespace AlgorithmsLab2.App.ViewModels;
 
 /// <summary>
 /// Правая панель для ханойских башен: число колец, скорость и счётчики ходов.
-/// Проигрывание идёт по таймеру, один ход за тик.
+/// Поддерживает плавную 60 FPS анимацию перемещения колец по воздуху.
 /// </summary>
 public partial class HanoiSettingsViewModel : ObservableObject, IDisposable
 {
-    /// <summary>Наименьшая задержка между ходами, мс.</summary>
     public const int MinStepDelayMs = 20;
-
-    /// <summary>Наибольшая задержка между ходами, мс (2 секунды).</summary>
     public const int MaxStepDelayMs = 2000;
 
     private static readonly string[] PegNames = ["A", "B", "C"];
 
     private readonly HanoiSession _session;
-    private readonly DispatcherTimer _timer;
+    private bool _isAnimating;
 
     [ObservableProperty]
     private int _diskCount;
@@ -66,12 +63,8 @@ public partial class HanoiSettingsViewModel : ObservableObject, IDisposable
         _diskCount = Math.Clamp(settings.DiskCount, RenderLimits.MinHanoiDisks, RenderLimits.MaxHanoiDisks);
         _stepDelayMs = Math.Clamp(settings.StepDelayMs, MinStepDelayMs, MaxStepDelayMs);
 
-        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(_stepDelayMs) };
-        _timer.Tick += OnTimerTick;
-
         _session.Changed += OnSessionChanged;
 
-        // Приводим головоломку к сохранённому числу колец.
         _session.Resize(_diskCount);
         UpdateCounters(_session.Snapshot);
     }
@@ -84,39 +77,27 @@ public partial class HanoiSettingsViewModel : ObservableObject, IDisposable
 
     public int MaxDelayMs => MaxStepDelayMs;
 
-    /// <summary>Журнал сделанных ходов по порядку; шаг назад и сброс убирают записи.</summary>
     public ObservableCollection<HanoiLogEntry> MoveLog { get; } = [];
 
-    /// <summary>Текст на кнопке запуска: «Провести симуляцию» или «Пауза».</summary>
     public string PlaybackText => IsPlaying ? "Пауза" : "Провести симуляцию";
 
-    /// <inheritdoc />
     public void Dispose()
     {
-        _timer.Stop();
-        _timer.Tick -= OnTimerTick;
         _session.Changed -= OnSessionChanged;
     }
 
     partial void OnDiskCountChanged(int value)
     {
-        StopPlayback();
+        IsPlaying = false;
         _session.Resize(value);
         UpdateCounters(_session.Snapshot);
     }
-
-    partial void OnStepDelayMsChanged(int value) =>
-        _timer.Interval = TimeSpan.FromMilliseconds(Math.Clamp(value, MinStepDelayMs, MaxStepDelayMs));
 
     partial void OnIsPlayingChanged(bool value)
     {
         if (value)
         {
-            _timer.Start();
-        }
-        else
-        {
-            _timer.Stop();
+            _ = PlaybackLoopAsync();
         }
 
         OnPropertyChanged(nameof(PlaybackText));
@@ -134,17 +115,19 @@ public partial class HanoiSettingsViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private void StepForward()
+    private async Task StepForward()
     {
+        if (_isAnimating || _session.IsComplete) return;
         IsPlaying = false;
-        _session.Step();
+        await AnimateStepAsync(forward: true);
     }
 
     [RelayCommand]
-    private void StepBack()
+    private async Task StepBack()
     {
+        if (_isAnimating || _session.MovesMade == 0) return;
         IsPlaying = false;
-        _session.StepBack();
+        await AnimateStepAsync(forward: false);
     }
 
     [RelayCommand]
@@ -154,9 +137,6 @@ public partial class HanoiSettingsViewModel : ObservableObject, IDisposable
         _session.Reset();
     }
 
-    /// <summary>
-    /// Сравнение двух способов получить последовательность ходов: рекурсии и явного стека.
-    /// </summary>
     [RelayCommand]
     private void RunBenchmark()
     {
@@ -169,20 +149,128 @@ public partial class HanoiSettingsViewModel : ObservableObject, IDisposable
             + (result.SameMoves ? "Последовательности ходов совпадают." : "Последовательности различаются!");
     }
 
-    private void OnTimerTick(object? sender, EventArgs e)
+    private async Task PlaybackLoopAsync()
     {
+        while (IsPlaying && !_session.IsComplete)
+        {
+            await AnimateStepAsync(forward: true);
+
+            // Небольшая пауза между шагами, зависящая от ползунка скорости
+            var pause = Math.Max(10, StepDelayMs / 6);
+            await Task.Delay(pause);
+        }
+
         if (_session.IsComplete)
         {
             IsPlaying = false;
+        }
+    }
+
+    /// <summary>
+    /// Плавная 3-фазная анимация одного хода (подъём, полёт по воздуху, спуск).
+    /// </summary>
+    private async Task AnimateStepAsync(bool forward)
+    {
+        if (_isAnimating) return;
+
+        HanoiMove move;
+        int fromPeg, toPeg;
+
+        if (forward)
+        {
+            if (_session.NextMove is not { } next) return;
+            move = next;
+            fromPeg = move.FromPeg;
+            toPeg = move.ToPeg;
+        }
+        else
+        {
+            if (_session.Snapshot.LastMove is not { } prev) return;
+            move = prev;
+            fromPeg = move.ToPeg;
+            toPeg = move.FromPeg;
+        }
+
+        // Если задержка минимальна (< 60 мс), делаем мгновенный шаг без анимации
+        if (StepDelayMs < 60)
+        {
+            if (forward) _session.Step(); else _session.StepBack();
             return;
         }
 
-        _session.Step();
+        _isAnimating = true;
+
+        try
+        {
+            var diskCount = Math.Max(_session.DiskCount, 1);
+            var usableHeight = 5.0 - 0.14 - 0.12;
+            var thickness = Math.Min(0.62, usableHeight / diskCount * 0.78);
+            var step = thickness / 0.78;
+
+            var snapshot = _session.Snapshot;
+            var fromCount = snapshot.Pegs[fromPeg].Count;
+            var toCount = snapshot.Pegs[toPeg].Count;
+
+            var startX = fromPeg * 1.0;
+            var endX = toPeg * 1.0;
+            var startY = 0.14 + ((fromCount - 1) * step);
+            var targetY = 0.14 + (toCount * step);
+            const double topY = 5.08; // Чуть выше верхушки стержня (PegHeight = 5.0)
+
+            var duration = Math.Clamp(StepDelayMs * 0.8, 50, 700);
+            var stopwatch = Stopwatch.StartNew();
+
+            while (stopwatch.ElapsedMilliseconds < duration)
+            {
+                var progress = Math.Clamp(stopwatch.ElapsedMilliseconds / duration, 0.0, 1.0);
+                double currentX, currentY;
+
+                // Фаза 1: подъём (0.0 .. 0.33)
+                if (progress < 0.33)
+                {
+                    var p = progress / 0.33;
+                    var ease = (1 - Math.Cos(p * Math.PI)) / 2;
+                    currentX = startX;
+                    currentY = startY + ((topY - startY) * ease);
+                }
+                // Фаза 2: горизонтальный перелёт (0.33 .. 0.67)
+                else if (progress < 0.67)
+                {
+                    var p = (progress - 0.33) / 0.34;
+                    var ease = (1 - Math.Cos(p * Math.PI)) / 2;
+                    currentX = startX + ((endX - startX) * ease);
+                    currentY = topY;
+                }
+                // Фаза 3: опускание (0.67 .. 1.0)
+                else
+                {
+                    var p = (progress - 0.67) / 0.33;
+                    var ease = (1 - Math.Cos(p * Math.PI)) / 2;
+                    currentX = endX;
+                    currentY = topY + ((targetY - topY) * ease);
+                }
+
+                _session.AnimateFrame(move.Disk, fromPeg, currentX, currentY);
+                await Task.Delay(16); // ~60 FPS
+            }
+
+            // Завершаем ход в доменной модели
+            if (forward) _session.Step(); else _session.StepBack();
+        }
+        finally
+        {
+            _isAnimating = false;
+        }
     }
 
-    private void OnSessionChanged(object? sender, HanoiSnapshot snapshot) => UpdateCounters(snapshot);
-
-    private void StopPlayback() => IsPlaying = false;
+    private void OnSessionChanged(object? sender, HanoiSnapshot snapshot)
+    {
+        // Не трогаем счётчики во время промежуточных кадров анимации
+        if (snapshot.MovingDisk is null)
+        {
+            UpdateCounters(snapshot);
+        }
+    }
 
     private void UpdateCounters(HanoiSnapshot snapshot)
     {
@@ -201,10 +289,6 @@ public partial class HanoiSettingsViewModel : ObservableObject, IDisposable
         SyncLog(snapshot);
     }
 
-    /// <summary>
-    /// Приводит журнал в соответствие с состоянием головоломки. Ход вперёд добавляет запись,
-    /// шаг назад, сброс и смена числа колец убирают записи, которых больше нет.
-    /// </summary>
     private void SyncLog(HanoiSnapshot snapshot)
     {
         var made = snapshot.MovesMade;
@@ -226,7 +310,6 @@ public partial class HanoiSettingsViewModel : ObservableObject, IDisposable
             MoveLog.Add(new HanoiLogEntry(made, move.Disk, PegNames[move.FromPeg], PegNames[move.ToPeg]));
         }
 
-        // Выделяем последнюю запись: список сам прокручивается к текущему ходу.
         LogSelectedIndex = MoveLog.Count - 1;
     }
 }

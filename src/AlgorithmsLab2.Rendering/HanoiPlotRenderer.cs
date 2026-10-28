@@ -25,8 +25,8 @@ public static class HanoiPlotRenderer
     private const double MinDiskHalfWidth = 0.09;
 
     private const double SceneWidth = 3.5;
-    private const double SceneBottom = -1.05;
-    private const double SceneTop = PegHeight + 0.3;
+    private const double SceneBottom = -1.2;
+    private const double SceneTop = PegHeight + 1;
 
     /// <param name="aspectRatio">Отношение ширины области рисования к высоте.</param>
     /// <param name="dark">Тёмная тема: от неё зависят фон и цвет стержней.</param>
@@ -86,23 +86,38 @@ public static class HanoiPlotRenderer
             for (var level = 0; level < stack.Count; level++)
             {
                 var disk = stack[level];
-                var halfWidth = MinDiskHalfWidth
-                                + ((MaxDiskHalfWidth - MinDiskHalfWidth) * disk / diskCount);
-
-                var bottom = FirstDiskBottom + (level * step);
-                var fill = DiskColor(disk, diskCount);
-
-                DrawRoundedRectangle(
-                    plot,
-                    PegX(peg) - halfWidth,
-                    PegX(peg) + halfWidth,
-                    bottom,
-                    bottom + thickness,
-                    Math.Min(thickness / 2.2, halfWidth / 2.5),
-                    fill,
-                    Darken(fill, 0.55));
+                DrawDiskAt(plot, PegX(peg), FirstDiskBottom + (level * step), disk, diskCount, thickness);
             }
         }
+
+        // Если в кадре есть летящее кольцо — рисуем его поверх остальных
+        if (snapshot.MovingDisk is { } moving)
+        {
+            DrawDiskAt(plot, moving.CenterX, moving.BottomY, moving.Disk, diskCount, thickness);
+        }
+    }
+
+    private static void DrawDiskAt(
+        ScottPlot.Plot plot,
+        double centerX,
+        double bottom,
+        int disk,
+        int diskCount,
+        double thickness)
+    {
+        var halfWidth = MinDiskHalfWidth
+                        + ((MaxDiskHalfWidth - MinDiskHalfWidth) * disk / diskCount);
+        var fill = DiskColor(disk, diskCount);
+
+        DrawRoundedRectangle(
+            plot,
+            centerX - halfWidth,
+            centerX + halfWidth,
+            bottom,
+            bottom + thickness,
+            Math.Min(thickness / 2.2, halfWidth / 2.5),
+            fill,
+            Darken(fill, 0.55));
     }
 
     /// <summary>Прямоугольник со скруглёнными углами: стандартные прямоугольники выглядят грубо.</summary>

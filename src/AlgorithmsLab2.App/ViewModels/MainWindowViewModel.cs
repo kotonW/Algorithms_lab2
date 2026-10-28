@@ -63,8 +63,8 @@ public partial class MainWindowViewModel : ObservableObject
                 hanoiSettings),
             new TaskViewModel(
                 "permutations",
-                "Перебор перестановок",
-                "O(n!) — рекурсивный перебор",
+                "Собственные алгоритмы",
+                "Рекурсивные алгоритмы",
                 benchmarkChart,
                 benchmarkSettings),
         ];

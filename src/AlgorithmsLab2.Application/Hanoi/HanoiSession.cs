@@ -25,6 +25,9 @@ public sealed class HanoiSession
 
     public HanoiSnapshot Snapshot => _puzzle.Snapshot();
 
+    /// <summary>Следующий ход, который предстоит сделать (если головоломка ещё не решена).</summary>
+    public HanoiMove? NextMove => MovesMade < TotalMoves ? _puzzle.Moves[MovesMade] : null;
+
     /// <summary>Меняет число колец (с пересозданием головоломки).</summary>
     public HanoiSnapshot Resize(int diskCount)
     {
@@ -50,6 +53,30 @@ public sealed class HanoiSession
     public HanoiSnapshot Reset() => Publish(_puzzle.Reset());
 
     public HanoiSnapshot Seek(int moveIndex) => Publish(_puzzle.Seek(moveIndex));
+
+    /// <summary>
+    /// Публикует промежуточный кадр анимации: верхнее кольцо временно снято со стержня
+    /// и отображается по заданным координатам (x, y).
+    /// </summary>
+    public void AnimateFrame(int disk, int sourcePeg, double x, double y)
+    {
+        var current = _puzzle.Snapshot();
+        var tempPegs = current.Pegs
+            .Select((peg, i) => i == sourcePeg && peg.Count > 0
+                ? (IReadOnlyList<int>)peg.Take(peg.Count - 1).ToArray()
+                : peg)
+            .ToArray();
+
+        var frameSnapshot = new HanoiSnapshot(
+            tempPegs,
+            _puzzle.DiskCount,
+            _puzzle.MovesMade,
+            _puzzle.TotalMoves,
+            current.LastMove,
+            new HanoiMovingDisk(disk, x, y));
+
+        Changed?.Invoke(this, frameSnapshot);
+    }
 
     private static int Clamp(int diskCount) => Math.Clamp(diskCount, 1, 10);
 
