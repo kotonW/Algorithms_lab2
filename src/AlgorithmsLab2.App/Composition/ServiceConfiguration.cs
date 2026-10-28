@@ -10,6 +10,7 @@ using AlgorithmsLab2.Domain.GrayCode;
 using AlgorithmsLab2.Domain.Permutations;
 using AlgorithmsLab2.Domain.Polyominoes;
 using Microsoft.Extensions.DependencyInjection;
+using AlgorithmsLab2.Domain.Queens;
 
 namespace AlgorithmsLab2.App.Composition;
 
@@ -48,6 +49,8 @@ public static class ServiceConfiguration
         services.AddSingleton<IAlgorithmBenchmark, GrayCodeBenchmark>();
         services.AddSingleton<RedelmeierPolyominoAlgorithm>();
         services.AddSingleton<IAlgorithmBenchmark, PolyominoBenchmark>();
+        services.AddSingleton<NQueensAlgorithm>();
+        services.AddSingleton<IAlgorithmBenchmark, NQueensBenchmark>();
         services.AddSingleton<BenchmarkRegistry>();
         services.AddSingleton<BenchmarkRunner>();
         services.AddSingleton<BenchmarkChartViewModel>();
