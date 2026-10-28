@@ -1,3 +1,5 @@
+using AlgorithmsLab2.Domain.Benchmarks;
+
 namespace AlgorithmsLab2.Domain.Permutations;
 
 /// <summary>
@@ -66,6 +68,31 @@ public static class PermutationGenerator
         return result;
     }
 
+    /// <summary>
+    /// Строит дерево вызовов рекурсии для небольшого n: каждый узел — один вызов, подпись узла — уже
+    /// зафиксированное начало перестановки, листья — готовые перестановки в порядке их получения.
+    /// Это отдельный проход: он повторяет перебор, но не участвует в замерах времени.
+    /// </summary>
+    /// <param name="n">Длина перестановки.</param>
+    /// <param name="maxNodes">Предел числа узлов: дерево n! листьев быстро становится огромным.</param>
+    public static RecursionTree Trace(int n, int maxNodes = 400)
+    {
+        ValidateN(n);
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxNodes, 1);
+
+        var items = new int[n];
+
+        for (var i = 0; i < n; i++)
+        {
+            items[i] = i + 1;
+        }
+
+        var tracer = new Tracer(items, maxNodes);
+        var root = tracer.Visit(0) ?? throw new InvalidOperationException("Корень дерева не построен.");
+
+        return new RecursionTree($"n = {n}", root, tracer.Count, tracer.Truncated);
+    }
+
     private static void ValidateN(int n)
     {
         if (n is < 0 or > MaxSupportedN)
@@ -75,6 +102,49 @@ public static class PermutationGenerator
                 n,
                 $"n должно быть от 0 до {MaxSupportedN}.");
         }
+    }
+
+    private sealed class Tracer(int[] items, int maxNodes)
+    {
+        private int _count;
+
+        public int Count => _count;
+
+        public bool Truncated { get; private set; }
+
+        public RecursionNode? Visit(int position)
+        {
+            if (_count >= maxNodes)
+            {
+                Truncated = true;
+                return null;
+            }
+
+            var node = new RecursionNode(_count++, Label(position));
+
+            if (position == items.Length)
+            {
+                return node;
+            }
+
+            for (var i = position; i < items.Length; i++)
+            {
+                (items[position], items[i]) = (items[i], items[position]);
+                var child = Visit(position + 1);
+                (items[position], items[i]) = (items[i], items[position]);
+
+                if (child is null)
+                {
+                    break;
+                }
+
+                node.AddChild(child);
+            }
+
+            return node;
+        }
+
+        private string Label(int position) => position == 0 ? "∅" : string.Concat(items.Take(position));
     }
 
     private sealed class Walker(int[] items, Action<int[]>? visitor, CancellationToken cancellationToken)

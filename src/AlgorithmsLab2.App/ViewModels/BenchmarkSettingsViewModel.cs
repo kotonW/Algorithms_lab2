@@ -45,6 +45,15 @@ public partial class BenchmarkSettingsViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string _estimateText = string.Empty;
 
+    [ObservableProperty]
+    private bool _showTree = true;
+
+    [ObservableProperty]
+    private int _treeN;
+
+    [ObservableProperty]
+    private string _treeInfoText = string.Empty;
+
     public BenchmarkSettingsViewModel(
         BenchmarkRegistry registry,
         BenchmarkRunner runner,
@@ -66,8 +75,10 @@ public partial class BenchmarkSettingsViewModel : ObservableObject, IDisposable
         _maxN = Math.Clamp(settings.BenchmarkMaxN, metadata.MinN, metadata.MaxN);
         _runsPerPoint = Math.Clamp(settings.BenchmarkRuns, 1, ExperimentConfig.MaxRuns);
         _showTheory = settings.ShowTheory;
+        _treeN = (_selectedAlgorithm as ITraceableBenchmark)?.TraceDefaultN ?? 1;
 
         UpdateEstimate();
+        UpdateTree();
     }
 
     public IReadOnlyList<IAlgorithmBenchmark> Algorithms => _registry.Algorithms;
@@ -83,6 +94,12 @@ public partial class BenchmarkSettingsViewModel : ObservableObject, IDisposable
     public string ComplexityText => $"Сложность: {SelectedAlgorithm.Metadata.Complexity}";
 
     public string DescriptionText => SelectedAlgorithm.Metadata.Description;
+
+    /// <summary>Есть ли для выбранного алгоритма дерево рекурсии.</summary>
+    public bool IsTraceable => SelectedAlgorithm is ITraceableBenchmark;
+
+    /// <summary>Наибольшее n для дерева рекурсии.</summary>
+    public int TraceMaxN => (SelectedAlgorithm as ITraceableBenchmark)?.TraceMaxN ?? 1;
 
     /// <inheritdoc />
     public void Dispose()
@@ -103,9 +120,14 @@ public partial class BenchmarkSettingsViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(MaxAllowedN));
         OnPropertyChanged(nameof(ComplexityText));
         OnPropertyChanged(nameof(DescriptionText));
+        OnPropertyChanged(nameof(IsTraceable));
+        OnPropertyChanged(nameof(TraceMaxN));
+
+        TreeN = (value as ITraceableBenchmark)?.TraceDefaultN ?? 1;
 
         _chart.Clear(metadata);
         UpdateEstimate();
+        UpdateTree();
     }
 
     partial void OnMaxNChanged(int value) => UpdateEstimate();
@@ -113,6 +135,10 @@ public partial class BenchmarkSettingsViewModel : ObservableObject, IDisposable
     partial void OnRunsPerPointChanged(int value) => UpdateEstimate();
 
     partial void OnShowTheoryChanged(bool value) => _chart.SetTheoryVisible(value);
+
+    partial void OnTreeNChanged(int value) => UpdateTree();
+
+    partial void OnShowTreeChanged(bool value) => _chart.Tree.IsVisible = value;
 
     [RelayCommand(CanExecute = nameof(CanRun))]
     private async Task RunAsync()
@@ -179,6 +205,29 @@ public partial class BenchmarkSettingsViewModel : ObservableObject, IDisposable
     private bool CanRun() => !IsRunning;
 
     private bool CanCancel() => IsRunning;
+
+    /// <summary>
+    /// Строит дерево рекурсии для выбранного алгоритма и n и передаёт его на график.
+    /// Дерево небольшое (до нескольких сотен узлов), поэтому строится прямо в UI-потоке.
+    /// </summary>
+    private void UpdateTree()
+    {
+        if (SelectedAlgorithm is ITraceableBenchmark traceable)
+        {
+            var tree = traceable.BuildTrace(Math.Clamp(TreeN, 1, traceable.TraceMaxN));
+
+            _chart.Tree.Show(tree);
+            TreeInfoText = string.Create(
+                CultureInfo.CurrentCulture,
+                $"Узлов в дереве: {tree.NodeCount}")
+                + (tree.IsTruncated ? " (показана часть)" : string.Empty);
+        }
+        else
+        {
+            _chart.Tree.Show(null);
+            TreeInfoText = "Для этого алгоритма дерево рекурсии недоступно.";
+        }
+    }
 
     private void UpdateEstimate()
     {

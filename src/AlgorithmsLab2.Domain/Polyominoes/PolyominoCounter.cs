@@ -1,3 +1,6 @@
+using System.Globalization;
+using AlgorithmsLab2.Domain.Benchmarks;
+
 namespace AlgorithmsLab2.Domain.Polyominoes;
 
 /// <summary>
@@ -47,6 +50,31 @@ public static class PolyominoCounter
         walker.Run();
 
         return new PolyominoResult(walker.Found, walker.Calls);
+    }
+
+    /// <summary>
+    /// Строит дерево вызовов рекурсии для небольшого n. Узел — одна поставленная клетка, подпись — её координаты
+    /// относительно начальной клетки (x вправо, y вверх); потомки узла — клетки, поставленные следующими.
+    /// Корень «∅» — пустая фигура перед первым вызовом. Это отдельный проход, он не участвует в замерах.
+    /// </summary>
+    /// <param name="n">Число клеток в фигуре.</param>
+    /// <param name="maxNodes">Предел числа узлов.</param>
+    public static RecursionTree Trace(int n, int maxNodes = 400)
+    {
+        if (n is < 1 or > MaxSupportedN)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(n),
+                n,
+                $"n должно быть от 1 до {MaxSupportedN}.");
+        }
+
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxNodes, 1);
+
+        var tracer = new Tracer(n, maxNodes);
+        var root = tracer.Run();
+
+        return new RecursionTree($"n = {n}", root, tracer.Count, tracer.Truncated);
     }
 
     /// <summary>
@@ -150,5 +178,107 @@ public static class PolyominoCounter
                 }
             }
         }
+    }
+
+    /// <summary>Тот же обход, что и в <see cref="Walker"/>, но с построением дерева вызовов.</summary>
+    private sealed class Tracer
+    {
+        private readonly int _n;
+        private readonly int _width;
+        private readonly int _origin;
+        private readonly int _maxNodes;
+        private readonly int[] _deltas;
+        private readonly bool[] _seen;
+        private readonly int[][] _untried;
+
+        // Синтетический корень «∅» уже учтён.
+        private int _count = 1;
+
+        public Tracer(int n, int maxNodes)
+        {
+            _n = n;
+            _width = (2 * n) + 1;
+            _origin = n;
+            _maxNodes = maxNodes;
+            _deltas = [1, -1, _width, -_width];
+            _seen = new bool[_width * (n + 2)];
+            _seen[_origin] = true;
+            _untried = new int[n][];
+
+            for (var level = 0; level < n; level++)
+            {
+                _untried[level] = new int[(3 * n) + 3];
+            }
+        }
+
+        public int Count => _count;
+
+        public bool Truncated { get; private set; }
+
+        public RecursionNode Run()
+        {
+            var root = new RecursionNode(0, "∅");
+
+            _untried[0][0] = _origin;
+            Place(0, 1, root);
+
+            return root;
+        }
+
+        private void Place(int level, int count, RecursionNode parent)
+        {
+            var current = _untried[level];
+            var isLast = level + 1 == _n;
+
+            while (count > 0 && !Truncated)
+            {
+                if (_count >= _maxNodes)
+                {
+                    Truncated = true;
+                    return;
+                }
+
+                count--;
+                var cell = current[count];
+                var node = new RecursionNode(_count++, Describe(cell));
+                parent.AddChild(node);
+
+                if (isLast)
+                {
+                    continue;
+                }
+
+                var next = _untried[level + 1];
+                Array.Copy(current, next, count);
+
+                var size = count;
+
+                foreach (var delta in _deltas)
+                {
+                    var neighbor = cell + delta;
+
+                    if (neighbor > _origin && !_seen[neighbor])
+                    {
+                        _seen[neighbor] = true;
+                        next[size++] = neighbor;
+                    }
+                }
+
+                Place(level + 1, size, node);
+
+                if (Truncated)
+                {
+                    return;
+                }
+
+                for (var i = count; i < size; i++)
+                {
+                    _seen[next[i]] = false;
+                }
+            }
+        }
+
+        private string Describe(int cell) =>
+            string.Create(CultureInfo.InvariantCulture, $"({(cell % _width) - _n},{cell / _width})");
     }
 }

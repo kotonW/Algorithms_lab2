@@ -25,6 +25,9 @@ public sealed class BenchmarkChartViewModel : IRedrawableTask
         _showTheory = settings.ShowTheory;
     }
 
+    /// <summary>Дерево рекурсии под графиком: по умолчанию видно.</summary>
+    public RecursionTreeViewModel Tree { get; } = new();
+
     /// <summary>Подключить холст; сразу рисует текущее состояние (пустой график или последний ряд).</summary>
     public void Attach(IBenchmarkCanvas canvas)
     {
@@ -50,7 +53,11 @@ public sealed class BenchmarkChartViewModel : IRedrawableTask
         Show(BenchmarkSeries.Empty(metadata), _showTheory);
 
     /// <summary>Смена темы: перекрашиваются фон, оси и сам график.</summary>
-    public void Redraw() => _canvas?.RefreshTheme();
+    public void Redraw()
+    {
+        _canvas?.RefreshTheme();
+        Tree.Redraw();
+    }
 
     /// <summary>Нажатие на график: показать подпись, если рядом с курсором есть точка.</summary>
     public void PickPoint(float x, float y)

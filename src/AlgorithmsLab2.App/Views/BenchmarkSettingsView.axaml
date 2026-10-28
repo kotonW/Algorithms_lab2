@@ -58,6 +58,24 @@
       <CheckBox Content="Теоретическая кривая c·f(n)"
                 IsChecked="{Binding ShowTheory}" />
 
+      <CheckBox Content="Дерево рекурсии под графиком"
+                IsChecked="{Binding ShowTree}" />
+
+      <StackPanel Spacing="6" IsVisible="{Binding ShowTree}">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Classes="muted" Text="n для дерева" />
+          <TextBlock Grid.Column="1" Classes="value" Text="{Binding TreeN}" />
+        </Grid>
+
+        <Slider Minimum="1"
+                Maximum="{Binding TraceMaxN}"
+                Value="{Binding TreeN}"
+                TickFrequency="1"
+                IsSnapToTickEnabled="True" />
+
+        <TextBlock Classes="muted" TextWrapping="Wrap" Text="{Binding TreeInfoText}" />
+      </StackPanel>
+
       <TextBlock Classes="muted"
                  TextWrapping="Wrap"
                  Text="Клик по точке показывает n и время. Колесо — масштаб, перетаскивание — сдвиг." />

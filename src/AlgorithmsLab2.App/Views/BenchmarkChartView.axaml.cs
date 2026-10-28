@@ -60,6 +60,11 @@ public partial class BenchmarkChartView : UserControl
         }
 
         viewModel.Attach(new AvaPlotCanvas(plot, () => AppTheme.IsDark));
+
+        if (this.FindControl<AvaPlot>("TreeControl") is { } treePlot)
+        {
+            viewModel.Tree.Attach(new AvaPlotTreeCanvas(treePlot, () => AppTheme.IsDark));
+        }
     }
 
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)

@@ -1,4 +1,5 @@
-﻿using AlgorithmsLab2.Domain.GrayCode;
+﻿using AlgorithmsLab2.Domain.Benchmarks;
+using AlgorithmsLab2.Domain.GrayCode;
 
 namespace AlgorithmsLab2.Application.Benchmarks;
 
@@ -7,7 +8,7 @@ namespace AlgorithmsLab2.Application.Benchmarks;
 /// Верхняя граница n = 24 выбрана так, чтобы один прогон укладывался в ~секунды;
 /// при необходимости можно поднять до 26, если железо быстрое.
 /// </summary>
-public sealed class GrayCodeBenchmark : TimedAlgorithmBenchmark<int, GrayCodeResult>
+public sealed class GrayCodeBenchmark : TimedAlgorithmBenchmark<int, GrayCodeResult>, ITraceableBenchmark
 {
     /// <summary>Идентификатор алгоритма в настройках и реестре.</summary>
     public const string AlgorithmId = "gray-code";
@@ -18,9 +19,30 @@ public sealed class GrayCodeBenchmark : TimedAlgorithmBenchmark<int, GrayCodeRes
     /// <summary>Основание роста: каждый новый бит удваивает число кодов.</summary>
     public const double GrowthBase = 2.0;
 
+    /// <summary>Предел числа узлов дерева рекурсии.</summary>
+    private const int MaxTraceNodes = 400;
+
     public GrayCodeBenchmark(GrayCodeAlgorithm algorithm)
         : base(algorithm, CreateMetadata(), n => n, result => result.Calls)
     {
+    }
+
+    /// <inheritdoc />
+    public int TraceDefaultN => 3;
+
+    /// <inheritdoc />
+    /// <remarks>При n = 7 в дереве 255 узлов, при n = 8 уже 511 — больше предела.</remarks>
+    public int TraceMaxN => 7;
+
+    /// <inheritdoc />
+    public RecursionTree BuildTrace(int n)
+    {
+        if (n < 0 || n > TraceMaxN)
+        {
+            throw new ArgumentOutOfRangeException(nameof(n), n, $"Для дерева n должно быть от 0 до {TraceMaxN}.");
+        }
+
+        return GrayCodeCounter.Trace(n, MaxTraceNodes);
     }
 
     private static AlgorithmMetadata CreateMetadata() => new(

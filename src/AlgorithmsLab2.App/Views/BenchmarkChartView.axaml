@@ -5,6 +5,19 @@
              x:Class="AlgorithmsLab2.App.Views.BenchmarkChartView"
              x:DataType="vm:BenchmarkChartViewModel">
 
-  <avaplot:AvaPlot Name="PlotControl" />
+  <Grid RowDefinitions="*,Auto">
+
+    <avaplot:AvaPlot Name="PlotControl" />
+
+    <!-- Дерево рекурсии: по умолчанию видно под графиком замеров. -->
+    <Border Grid.Row="1"
+            Height="300"
+            BorderThickness="0,1,0,0"
+            BorderBrush="#40808080"
+            IsVisible="{Binding Tree.IsVisible}">
+      <avaplot:AvaPlot Name="TreeControl" />
+    </Border>
+
+  </Grid>
 
 </UserControl>
