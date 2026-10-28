@@ -3,7 +3,7 @@
 /// <summary>Настройки, которые переживают перезапуск (пункт F13).</summary>
 public sealed record AppSettings
 {
-    public string Task { get; init; } = "sierpinski";
+    public string Task { get; init; } = "apollonian";
 
     public int Depth { get; init; } = 5;
 

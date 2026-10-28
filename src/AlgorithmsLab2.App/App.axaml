@@ -6,11 +6,11 @@
              RequestedThemeVariant="Dark">
 
   <Application.DataTemplates>
-    <DataTemplate DataType="vm:SierpinskiPlotViewModel">
-      <views:SierpinskiPlotView />
+    <DataTemplate DataType="vm:ApollonianPlotViewModel">
+      <views:ApollonianPlotView />
     </DataTemplate>
-    <DataTemplate DataType="vm:SierpinskiSettingsViewModel">
-      <views:SierpinskiSettingsView />
+    <DataTemplate DataType="vm:ApollonianSettingsViewModel">
+      <views:ApollonianSettingsView />
     </DataTemplate>
     <DataTemplate DataType="vm:HanoiPlotViewModel">
       <views:HanoiPlotView />

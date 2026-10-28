@@ -1,11 +1,11 @@
+using AlgorithmsLab2.Application.Apollonian;
 using AlgorithmsLab2.Application.Benchmarks;
 using AlgorithmsLab2.Application.Hanoi;
-using AlgorithmsLab2.Application.Rendering;
 using AlgorithmsLab2.Application.Settings;
 using AlgorithmsLab2.App.Services;
 using AlgorithmsLab2.App.ViewModels;
 using AlgorithmsLab2.App.Views;
-using AlgorithmsLab2.Domain.Fractals;
+using AlgorithmsLab2.Domain.Apollonian;
 using AlgorithmsLab2.Domain.GrayCode;
 using AlgorithmsLab2.Domain.Permutations;
 using AlgorithmsLab2.Domain.Polyominoes;
@@ -24,14 +24,21 @@ public static class ServiceConfiguration
         services.AddSingleton(provider => provider.GetRequiredService<ISettingsStore>().Load());
         services.AddSingleton<IThemeService, ThemeService>();
 
-        services.AddSingleton<SierpinskiCarpet>();
-        services.AddSingleton<IFractalRenderer, FractalRenderer>();
-
         services.AddSingleton(provider =>
             new HanoiSession(provider.GetRequiredService<AppSettings>().DiskCount));
 
-        services.AddSingleton<SierpinskiSettingsViewModel>();
-        services.AddSingleton<SierpinskiPlotViewModel>();
+        // Первое задание: рекурсивный фрактал — аполлониева решётка (вместо ковра Серпинского).
+        services.AddSingleton(provider =>
+        {
+            var settings = provider.GetRequiredService<AppSettings>();
+
+            return new ApollonianSession(
+                Math.Clamp(settings.Depth, 0, ApolloniusGasket.MaxDepth),
+                GasketPalettes.Find(settings.Palette));
+        });
+
+        services.AddSingleton<ApollonianSettingsViewModel>();
+        services.AddSingleton<ApollonianPlotViewModel>();
         services.AddSingleton<HanoiSettingsViewModel>();
         services.AddSingleton<HanoiPlotViewModel>();
 

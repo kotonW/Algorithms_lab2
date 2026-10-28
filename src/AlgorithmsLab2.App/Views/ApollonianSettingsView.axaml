@@ -1,0 +1,91 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AlgorithmsLab2.App.ViewModels"
+             xmlns:apo="using:AlgorithmsLab2.Application.Apollonian"
+             x:Class="AlgorithmsLab2.App.Views.ApollonianSettingsView"
+             x:DataType="vm:ApollonianSettingsViewModel">
+
+  <StackPanel Margin="16" Spacing="16">
+
+    <StackPanel Spacing="6">
+      <TextBlock Classes="section" Text="ПАРАМЕТРЫ" />
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Глубина рекурсии" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding Depth}" />
+      </Grid>
+
+      <Slider Minimum="{Binding MinDepth}"
+              Maximum="{Binding MaxDepth}"
+              Value="{Binding Depth}"
+              TickFrequency="1"
+              IsSnapToTickEnabled="True" />
+
+      <TextBlock Classes="muted" Text="Палитра" Margin="0,6,0,0" />
+
+      <ComboBox HorizontalAlignment="Stretch"
+                ItemsSource="{Binding Palettes}"
+                SelectedItem="{Binding SelectedPalette}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="apo:GasketPalette">
+            <TextBlock Text="{Binding Name}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+
+      <CheckBox Content="Пошагово при смене глубины"
+                IsChecked="{Binding IsProgressive}" />
+    </StackPanel>
+
+    <StackPanel Spacing="8">
+      <TextBlock Classes="section" Text="УПРАВЛЕНИЕ" />
+
+      <Button Classes="primary"
+              HorizontalAlignment="Stretch"
+              Content="{Binding PlaybackText}"
+              Command="{Binding TogglePlaybackCommand}" />
+
+      <TextBlock Classes="muted"
+                 TextWrapping="Wrap"
+                 Text="Уровни рекурсии появляются по одному: от трёх начальных кругов до выбранной глубины." />
+    </StackPanel>
+
+    <StackPanel Spacing="4">
+      <TextBlock Classes="section" Text="ИНФОРМАЦИЯ" />
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Показано уровней" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding LevelText}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Кругов (2·3^n + 1)" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding CirclesText}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Покрыто площади" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding CoverageText}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Не покрыто" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding UncoveredText}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Наименьший радиус" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding SmallestRadiusText}" />
+      </Grid>
+
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Фрактальная размерность" />
+        <TextBlock Grid.Column="1" Classes="value" Text="{Binding DimensionText}" />
+      </Grid>
+
+      <TextBlock Classes="muted" TextWrapping="Wrap" Margin="0,6,0,0"
+                 Text="Новый круг касается трёх соседних (теорема Декарта), поэтому с каждым уровнем кругов втрое больше, а не закрыта остаётся всё меньшая доля площади." />
+    </StackPanel>
+
+  </StackPanel>
+</UserControl>

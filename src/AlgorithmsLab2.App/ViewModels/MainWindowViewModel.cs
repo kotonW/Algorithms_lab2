@@ -14,7 +14,7 @@ public partial class MainWindowViewModel : ObservableObject
 {
     private readonly ISettingsStore _settingsStore;
     private readonly IThemeService _themeService;
-    private readonly SierpinskiSettingsViewModel _sierpinskiSettings;
+    private readonly ApollonianSettingsViewModel _apollonianSettings;
     private readonly HanoiSettingsViewModel _hanoiSettings;
     private readonly BenchmarkSettingsViewModel _benchmarkSettings;
     private readonly BenchmarkChartViewModel _benchmarkChart;
@@ -29,8 +29,8 @@ public partial class MainWindowViewModel : ObservableObject
         ISettingsStore settingsStore,
         IThemeService themeService,
         AppSettings settings,
-        SierpinskiPlotViewModel sierpinskiPlot,
-        SierpinskiSettingsViewModel sierpinskiSettings,
+        ApollonianPlotViewModel apollonianPlot,
+        ApollonianSettingsViewModel apollonianSettings,
         HanoiPlotViewModel hanoiPlot,
         HanoiSettingsViewModel hanoiSettings,
         BenchmarkChartViewModel benchmarkChart,
@@ -42,7 +42,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         _settingsStore = settingsStore;
         _themeService = themeService;
-        _sierpinskiSettings = sierpinskiSettings;
+        _apollonianSettings = apollonianSettings;
         _hanoiSettings = hanoiSettings;
         _benchmarkSettings = benchmarkSettings;
         _benchmarkChart = benchmarkChart;
@@ -50,11 +50,11 @@ public partial class MainWindowViewModel : ObservableObject
         Tasks =
         [
             new TaskViewModel(
-                "sierpinski",
-                "Ковёр Серпинского",
-                "Рекурсивный фрактал",
-                sierpinskiPlot,
-                sierpinskiSettings),
+                "apollonian",
+                "Аполлониева решётка",
+                "Рекурсивная упаковка кругов",
+                apollonianPlot,
+                apollonianSettings),
             new TaskViewModel(
                 "hanoi",
                 "Ханойские башни",
@@ -80,9 +80,9 @@ public partial class MainWindowViewModel : ObservableObject
     public AppSettings CaptureSettings() => new()
     {
         Task = SelectedTask.Id,
-        Depth = _sierpinskiSettings.Depth,
-        Palette = _sierpinskiSettings.SelectedPalette.Name,
-        Progressive = _sierpinskiSettings.IsProgressive,
+        Depth = _apollonianSettings.Depth,
+        Palette = _apollonianSettings.SelectedPalette.Name,
+        Progressive = _apollonianSettings.IsProgressive,
         DarkTheme = IsDarkTheme,
         DiskCount = _hanoiSettings.DiskCount,
         StepDelayMs = _hanoiSettings.StepDelayMs,
