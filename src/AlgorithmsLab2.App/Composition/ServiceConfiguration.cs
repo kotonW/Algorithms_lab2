@@ -6,6 +6,7 @@ using AlgorithmsLab2.App.Services;
 using AlgorithmsLab2.App.ViewModels;
 using AlgorithmsLab2.App.Views;
 using AlgorithmsLab2.Domain.Fractals;
+using AlgorithmsLab2.Domain.GrayCode;
 using AlgorithmsLab2.Domain.Permutations;
 using AlgorithmsLab2.Domain.Polyominoes;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,8 +37,8 @@ public static class ServiceConfiguration
 
         // Замеры алгоритмов: чтобы добавить новый алгоритм, достаточно реализовать
         // IAlgorithmBenchmark и добавить одну регистрацию ниже.
-        services.AddSingleton<AllPermutationsAlgorithm>();
-        services.AddSingleton<IAlgorithmBenchmark, PermutationsBenchmark>();
+        services.AddSingleton<GrayCodeAlgorithm>();
+        services.AddSingleton<IAlgorithmBenchmark, GrayCodeBenchmark>();
         services.AddSingleton<RedelmeierPolyominoAlgorithm>();
         services.AddSingleton<IAlgorithmBenchmark, PolyominoBenchmark>();
         services.AddSingleton<BenchmarkRegistry>();
